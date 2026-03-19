@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omniscore"
+version = "0.1.0"
+description = "A Hugging Face-native text scoring package for multi-dimensional quality evaluation."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = {text = "MIT"}
+authors = [
+  {name = "QCRI ALT"}
+]
+keywords = ["evaluation", "nlp", "huggingface", "transformers", "metrics"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "huggingface_hub>=0.24.0,<1.0",
+  "numpy>=1.24.0,<2.0",
+  "torch>=2.1.0,<2.4",
+  "transformers>=4.40.0,<5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "tokenizers>=0.15.0",
+]
+
+[project.scripts]
+omniscore = "omniscore.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["omniscore*"]
+
+[tool.setuptools.package-data]
+omniscore = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
