@@ -18,9 +18,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prediction", help="Single prediction text to score.")
     parser.add_argument("--reference", default=None, help="Optional single reference text.")
     parser.add_argument("--source", default=None, help="Optional single source text.")
+    parser.add_argument("--task", default=None, help="Optional task name such as headline_evaluation.")
     parser.add_argument("--predictions-file", type=Path, default=None, help="File with one prediction per line.")
     parser.add_argument("--references-file", type=Path, default=None, help="File with one reference per line.")
     parser.add_argument("--sources-file", type=Path, default=None, help="File with one source per line.")
+    parser.add_argument("--tasks-file", type=Path, default=None, help="File with one task name per line.")
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
     return parser
 
@@ -29,7 +31,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    predictions, references, sources = _resolve_inputs(args, parser)
+    predictions, references, sources, tasks = _resolve_inputs(args, parser)
     scorer = OmniScorer(
         model_name_or_path=args.model_name_or_path,
         device=args.device,
@@ -40,6 +42,7 @@ def main() -> None:
         predictions,
         references=references,
         sources=sources,
+        tasks=tasks,
     )
 
     payload = {
@@ -54,7 +57,9 @@ def _resolve_inputs(args: argparse.Namespace, parser: argparse.ArgumentParser):
     if args.prediction is not None:
         if args.predictions_file is not None:
             parser.error("Use either --prediction or --predictions-file, not both.")
-        return args.prediction, args.reference, args.source
+        if args.tasks_file is not None:
+            parser.error("Use either --task or --tasks-file, not both.")
+        return args.prediction, args.reference, args.source, args.task
 
     if args.predictions_file is None:
         parser.error("Pass --prediction for a single example or --predictions-file for batch scoring.")
@@ -62,7 +67,8 @@ def _resolve_inputs(args: argparse.Namespace, parser: argparse.ArgumentParser):
     predictions = _read_lines(args.predictions_file)
     references = _read_lines(args.references_file) if args.references_file else None
     sources = _read_lines(args.sources_file) if args.sources_file else None
-    return predictions, references, sources
+    tasks = _read_lines(args.tasks_file) if args.tasks_file else None
+    return predictions, references, sources, tasks
 
 
 def _read_lines(path: Path) -> list[str]:

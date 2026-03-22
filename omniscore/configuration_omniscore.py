@@ -31,6 +31,7 @@ class OmniScoreConfig(PretrainedConfig):
         is_encoder: bool | None = None,
         pooling_strategy: str | None = None,
         hidden_size: int | None = None,
+        task_prefix: str | None = "Task:",
         source_prefix: str = "Source:",
         reference_prefix: str = "Reference:",
         prediction_prefix: str = "Prediction:",
@@ -61,6 +62,7 @@ class OmniScoreConfig(PretrainedConfig):
         self.is_encoder = is_encoder
         self.pooling_strategy = pooling_strategy
         self.hidden_size = hidden_size
+        self.task_prefix = task_prefix
         self.source_prefix = source_prefix
         self.reference_prefix = reference_prefix
         self.prediction_prefix = prediction_prefix
