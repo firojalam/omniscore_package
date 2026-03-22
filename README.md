@@ -87,6 +87,17 @@ print(result.to_list())
 
 `omniscore` detects that this is a legacy `score_predictor` checkpoint and internally handles the remote-code loading path for you.
 
+## Example Notebook
+
+A clean Colab-oriented example notebook is available at `examples/omniscore_qcri_deberta_v3_colab.ipynb`.
+
+It walks through:
+
+- verifying the GPU runtime
+- loading `QCRI/OmniScore-deberta-v3`
+- running the documented example with `OmniScorer`
+- checking the returned score structure
+
 ## CLI
 
 Single example:

@@ -314,14 +314,19 @@ class OmniScorer:
         if local_dir.is_dir():
             return local_dir
 
-        code_file = hf_hub_download(
-            repo_id=model_name_or_path,
-            filename="configuration_score_predictor.py",
-            cache_dir=cache_dir,
-            revision=revision,
-            token=token,
-        )
-        return Path(code_file).parent
+        code_dir: Path | None = None
+        for filename in ("configuration_score_predictor.py", "modeling_score_predictor.py"):
+            downloaded = hf_hub_download(
+                repo_id=model_name_or_path,
+                filename=filename,
+                cache_dir=cache_dir,
+                revision=revision,
+                token=token,
+            )
+            code_dir = Path(downloaded).parent
+
+        assert code_dir is not None
+        return code_dir
 
     @staticmethod
     def _load_legacy_score_predictor_classes(code_dir: Path):

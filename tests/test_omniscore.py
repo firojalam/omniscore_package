@@ -166,6 +166,36 @@ def test_score_predictor_family_uses_documented_format(
     )
 
 
+def test_prepare_legacy_code_path_downloads_both_support_modules(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls: list[str] = []
+    remote_dir = tmp_path / "remote-support"
+    remote_dir.mkdir()
+
+    def fake_download(*, repo_id: str, filename: str, **kwargs: object) -> str:
+        calls.append(filename)
+        path = remote_dir / filename
+        path.write_text("# stub\n", encoding="utf-8")
+        return str(path)
+
+    monkeypatch.setattr("omniscore.scorer.hf_hub_download", fake_download)
+
+    support_dir = OmniScorer._prepare_legacy_code_path(
+        "QCRI/OmniScore-deberta-v3",
+        cache_dir=None,
+        revision=None,
+        token=None,
+    )
+
+    assert support_dir == remote_dir
+    assert calls == [
+        "configuration_score_predictor.py",
+        "modeling_score_predictor.py",
+    ]
+
+
 @pytest.mark.integration
 def test_live_qcri_model_example() -> None:
     if os.getenv("OMNISCORE_RUN_LIVE_HF") != "1":
