@@ -1,9 +1,9 @@
 # 🎯 omniscore
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-orange)](https://huggingface.co/models)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-orange)](https://huggingface.co/collections/QCRI/omniscore)
 
-`omniscore` is a lightweight Python package for evaluating the quality of Natural Language Generation (NLG) and generated text. Whether you are evaluating Question Answering (QA), text summarization, explanations, or LLM chat interactions, `omniscore` is designed to integrate seamlessly with OmniScore models.
+`omniscore` is a lightweight Python package for evaluating the quality of Natural Language Generation (NLG) and generated text. Whether you are evaluating Question Answering (QA), text summarization, explanations, or LLM chat interactions, `omniscore` is designed to integrate seamlessly with [OmniScore models](https://huggingface.co/collections/QCRI/omniscore).
 
 ## ✨ Key Features
 
@@ -34,7 +34,11 @@ You can install `omniscore` directly via pip. The runtime dependencies include `
 pip install omniscore
 ```
 
-*(Note: If installing from source for development, run `python3 -m pip install -e .` in the repository root.)*
+### Source
+
+[https://github.com/firojalam/omniscore_package](https://github.com/firojalam/omniscore_package)
+
+*(Note: If installing from [source](https://github.com/firojalam/omniscore_package) for development, run `python3 -m pip install -e .` in the repository root.)*
 
 ---
 

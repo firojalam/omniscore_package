@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "omniscore"
 version = "0.1.0"
-description = "A Hugging Face-native text scoring package for multi-dimensional quality evaluation."
+description = "A family of complementary, deterministic learned metrics developed using small size parameter models."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = {text = "MIT"}
