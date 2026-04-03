@@ -5,23 +5,26 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "omniscore"
 version = "0.1.0"
-description = "A family of complementary, deterministic learned metrics developed using small size parameter models."
+description = "Learned text-evaluation metrics for Hugging Face-hosted OmniScore models."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = {text = "MIT"}
 authors = [
   {name = "QCRI ALT"}
 ]
-keywords = ["evaluation", "nlp", "huggingface", "transformers", "metrics"]
+keywords = ["evaluation", "nlp", "llm-evaluation", "text-generation", "huggingface", "transformers", "metrics"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Text Processing :: Linguistic",
+  "Typing :: Typed",
 ]
 dependencies = [
   "huggingface_hub>=0.24.0,<1.0",
@@ -30,6 +33,14 @@ dependencies = [
   "torch>=2.1.0,<2.4",
   "transformers>=4.45.2,<4.46",
 ]
+
+[project.urls]
+Homepage = "https://github.com/firojalam/omniscore_package"
+Repository = "https://github.com/firojalam/omniscore_package"
+Issues = "https://github.com/firojalam/omniscore_package/issues"
+Models = "https://huggingface.co/collections/QCRI/omniscore"
+Examples = "https://github.com/firojalam/omniscore_package/tree/main/examples"
+Notebook = "https://colab.research.google.com/drive/1985As0_gN1mcRIt9Z_Q3jYRT2VBCzdo9"
 
 [project.optional-dependencies]
 dev = [

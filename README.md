@@ -1,7 +1,8 @@
 # 🎯 omniscore
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.10--3.12-blue.svg)](https://www.python.org/downloads/)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-orange)](https://huggingface.co/collections/QCRI/omniscore)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1985As0_gN1mcRIt9Z_Q3jYRT2VBCzdo9)
 
 `omniscore` is a lightweight Python package for evaluating the quality of Natural Language Generation (NLG) and generated text. Whether you are evaluating Question Answering (QA), text summarization, explanations, or LLM chat interactions, `omniscore` is designed to integrate seamlessly with [OmniScore models](https://huggingface.co/collections/QCRI/omniscore).
 
@@ -34,11 +35,34 @@ You can install `omniscore` directly via pip. The runtime dependencies include `
 pip install omniscore
 ```
 
+If you want the latest GitHub version before a PyPI release, install it directly from the repository:
+
+```bash
+pip install "git+https://github.com/firojalam/omniscore_package.git"
+```
+
 ### Source
 
 [https://github.com/firojalam/omniscore_package](https://github.com/firojalam/omniscore_package)
 
 *(Note: If installing from [source](https://github.com/firojalam/omniscore_package) for development, run `python3 -m pip install -e .` in the repository root.)*
+
+### 30-Second Demo
+
+List built-in known models:
+
+```bash
+omniscore --list-models --pretty
+```
+
+Run the documented example for a hosted model in one command:
+
+```bash
+omniscore \
+  --model QCRI/OmniScore-deberta-v3 \
+  --use-example \
+  --pretty
+```
 
 ---
 
@@ -78,6 +102,16 @@ result = scorer.score(
 )
 
 print(result.to_list())
+```
+
+### Method 3: Score a Built-in Example
+If you want to verify that a hosted model works end to end, use the built-in example helper.
+
+```python
+from omniscore import score_example
+
+result = score_example("QCRI/OmniScore-deberta-v3", device="cpu", max_length=128)
+print(result.to_json(indent=2))
 ```
 
 ---
@@ -145,6 +179,14 @@ omniscore \
   --pretty
 ```
 
+**Inspect model metadata and the built-in example:**
+```bash
+omniscore \
+  --model QCRI/OmniScore-deberta-v3 \
+  --show-model-info \
+  --pretty
+```
+
 ---
 
 ## 🛠 Advanced: Hosting Custom Models
@@ -188,7 +230,9 @@ Users can now load your model instantly using `OmniScorer("your-org/omniscore-ba
 ## 📚 Resources & Tutorials
 
 Check out our clean, Colab-oriented example notebook located at:
-📁 `examples/omniscore_qcri_deberta_v3_colab.ipynb`
+
+- GitHub: [examples/omniscore_qcri_deberta_v3_colab.ipynb](https://github.com/firojalam/omniscore_package/blob/main/examples/omniscore_qcri_deberta_v3_colab.ipynb)
+- Colab: [Open the notebook in Colab](https://colab.research.google.com/drive/1985As0_gN1mcRIt9Z_Q3jYRT2VBCzdo9)
 
 This notebook walks you through:
 - Verifying your GPU runtime.

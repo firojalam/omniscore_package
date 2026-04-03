@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import importlib.util
+import hashlib
 import os
 import sys
+import types
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,11 +15,11 @@ from typing import Any, Sequence
 
 import numpy as np
 import torch
-from huggingface_hub import hf_hub_download
+from huggingface_hub import hf_hub_download, snapshot_download
 from transformers import AutoTokenizer
 
 from omniscore.configuration_omniscore import OmniScoreConfig
-from omniscore.examples import get_known_model
+from omniscore.examples import get_example, get_known_model
 from omniscore.formatting import InputFormat, ensure_batch, format_example
 from omniscore.modeling_omniscore import OmniScoreModel
 
@@ -48,6 +50,16 @@ class OmniScoreResult:
             payload["overall"] = float(row.mean())
             rows.append(payload)
         return rows
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "score_names": list(self.score_names),
+            "scores": self.to_list(),
+            "mean": self.mean(),
+        }
+
+    def to_json(self, *, indent: int | None = None, ensure_ascii: bool = False) -> str:
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=ensure_ascii)
 
     def __len__(self) -> int:
         return int(self.scores.shape[0])
@@ -217,6 +229,28 @@ class OmniScorer:
         stacked = np.concatenate(score_batches, axis=0)
         return OmniScoreResult(score_names=tuple(self.config.score_names), scores=stacked)
 
+    def score_example(
+        self,
+        repo_id: str | None = None,
+        *,
+        batch_size: int | None = None,
+        max_length: int | None = None,
+    ) -> OmniScoreResult:
+        """Score the built-in documented example for a known hosted model."""
+        example_repo_id = repo_id or self.model_name_or_path
+        example = get_example(example_repo_id)
+        if example is None:
+            raise ValueError(
+                f"No built-in example is registered for {example_repo_id!r}. "
+                "Register it in omniscore.examples or pass explicit inputs."
+            )
+
+        return self.score(
+            batch_size=batch_size,
+            max_length=max_length,
+            **example.as_score_kwargs(),
+        )
+
     @staticmethod
     def _resolve_device(device: str) -> str:
         if device != "auto":
@@ -314,37 +348,71 @@ class OmniScorer:
         if local_dir.is_dir():
             return local_dir
 
-        code_dir: Path | None = None
-        for filename in ("configuration_score_predictor.py", "modeling_score_predictor.py"):
-            downloaded = hf_hub_download(
-                repo_id=model_name_or_path,
-                filename=filename,
-                cache_dir=cache_dir,
-                revision=revision,
-                token=token,
-            )
-            code_dir = Path(downloaded).parent
-
-        assert code_dir is not None
-        return code_dir
+        snapshot_dir = snapshot_download(
+            repo_id=model_name_or_path,
+            cache_dir=cache_dir,
+            revision=revision,
+            token=token,
+            allow_patterns=["*.py", "config.json"],
+        )
+        return Path(snapshot_dir)
 
     @staticmethod
     def _load_legacy_score_predictor_classes(code_dir: Path):
+        package_name = OmniScorer._ensure_remote_code_package(code_dir)
         config_module = OmniScorer._load_module(
-            "configuration_score_predictor",
+            f"{package_name}.configuration_score_predictor",
             code_dir / "configuration_score_predictor.py",
+            aliases=("configuration_score_predictor",),
         )
         model_module = OmniScorer._load_module(
-            "modeling_score_predictor",
+            f"{package_name}.modeling_score_predictor",
             code_dir / "modeling_score_predictor.py",
+            aliases=("modeling_score_predictor",),
         )
-        return config_module.ScorePredictorConfig, model_module.ScorePredictorModel
+        config_class = getattr(config_module, "ScorePredictorConfig", None)
+        model_class = getattr(model_module, "ScorePredictorModel", None)
+        if config_class is None:
+            raise ImportError(
+                "Legacy config module does not export ScorePredictorConfig: "
+                f"{code_dir / 'configuration_score_predictor.py'}"
+            )
+        if model_class is None:
+            available = ", ".join(sorted(name for name in dir(model_module) if not name.startswith("_")))
+            raise ImportError(
+                "Legacy model module does not export ScorePredictorModel: "
+                f"{code_dir / 'modeling_score_predictor.py'}. "
+                f"Available symbols: {available}"
+        )
+        return config_class, model_class
 
     @staticmethod
-    def _load_module(module_name: str, module_path: Path):
+    def _ensure_remote_code_package(code_dir: Path) -> str:
+        digest = hashlib.sha1(str(code_dir).encode("utf-8")).hexdigest()[:10]
+        package_name = f"_omniscore_remote_{digest}"
+        existing = sys.modules.get(package_name)
+        if existing is not None and tuple(getattr(existing, "__path__", ())) == (str(code_dir),):
+            return package_name
+
+        package = types.ModuleType(package_name)
+        package.__file__ = str(code_dir / "__init__.py")
+        package.__path__ = [str(code_dir)]
+        sys.modules[package_name] = package
+        return package_name
+
+    @staticmethod
+    def _load_module(module_name: str, module_path: Path, *, aliases: Sequence[str] = ()):
         existing = sys.modules.get(module_name)
         if existing is not None and getattr(existing, "__file__", None) == str(module_path):
+            for alias in aliases:
+                sys.modules[alias] = existing
             return existing
+        if existing is not None:
+            sys.modules.pop(module_name, None)
+        for alias in aliases:
+            alias_module = sys.modules.get(alias)
+            if alias_module is not None and getattr(alias_module, "__file__", None) != str(module_path):
+                sys.modules.pop(alias, None)
 
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         if spec is None or spec.loader is None:
@@ -353,6 +421,8 @@ class OmniScorer:
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
+        for alias in aliases:
+            sys.modules[alias] = module
         return module
 
     @staticmethod
@@ -408,3 +478,39 @@ def score(
         sources=sources,
         tasks=tasks,
     )
+
+
+def score_example(
+    model_name_or_path: str | None = None,
+    *,
+    repo_id: str | None = None,
+    device: str = "auto",
+    max_length: int = 512,
+    batch_size: int = 16,
+    cache_dir: str | None = None,
+    revision: str | None = None,
+    token: str | bool | None = None,
+    allow_remote_code: bool = True,
+    torch_dtype: str | torch.dtype | None = "auto",
+    model_kwargs: dict[str, Any] | None = None,
+    tokenizer_kwargs: dict[str, Any] | None = None,
+) -> OmniScoreResult:
+    """One-shot helper for scoring the documented example of a known model."""
+    resolved_model_name = model_name_or_path or repo_id
+    if resolved_model_name is None:
+        raise ValueError("Pass model_name_or_path or repo_id to score a known example.")
+
+    scorer = OmniScorer(
+        model_name_or_path=resolved_model_name,
+        device=device,
+        max_length=max_length,
+        batch_size=batch_size,
+        cache_dir=cache_dir,
+        revision=revision,
+        token=token,
+        allow_remote_code=allow_remote_code,
+        torch_dtype=torch_dtype,
+        model_kwargs=model_kwargs,
+        tokenizer_kwargs=tokenizer_kwargs,
+    )
+    return scorer.score_example(repo_id=repo_id)
