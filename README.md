@@ -24,6 +24,7 @@
 4. [Command Line Interface (CLI)](#-command-line-interface-cli)
 5. [Advanced: Hosting Custom Models](#-advanced-hosting-custom-models)
 6. [Resources & Tutorials](#-resources--tutorials)
+7. [Releasing](#-releasing)
 
 ---
 
@@ -238,6 +239,18 @@ This notebook walks you through:
 - Verifying your GPU runtime.
 - Loading the `QCRI/OmniScore-deberta-v3` model.
 - Running documented examples via `OmniScorer`.
+
+---
+
+## 🚢 Releasing
+
+`omniscore` now ships with a GitHub Actions release workflow that supports:
+
+- automatic PyPI releases on tags like `v0.1.1`
+- manual GitHub Actions releases to `testpypi` or `pypi`
+- local manual uploads with `twine`
+
+Setup and release instructions are documented in [docs/RELEASING.md](docs/RELEASING.md).
 - Inspecting the returned score data structure.
 
 ### Supported Families
