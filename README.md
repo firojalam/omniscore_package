@@ -256,3 +256,19 @@ Setup and release instructions are documented in [docs/RELEASING.md](docs/RELEAS
 ### Supported Families
 - Native `omniscore` checkpoints saved from `OmniScoreModel`.
 - Legacy `score_predictor` checkpoints (e.g., `QCRI/OmniScore-deberta-v3`).
+
+
+## Citation
+Please cite the paper when referring to this framework:
+
+- Firoj Alam, Gagan Bhatia, Sahinur Rahman Laskar, and Shammur Absar Chowdhury, “Beyond LLM-as-a-Judge: Deterministic Metrics for Multilingual Generative Text Evaluation,” arXiv (2026), arXiv:2604.05083.
+
+```
+@article{alam2026llmasajudge,
+  title   = {Beyond LLM-as-a-Judge: Deterministic Metrics for Multilingual Generative Text Evaluation},
+  author  = {Firoj Alam and Gagan Bhatia and Sahinur Rahman Laskar and Shammur Absar Chowdhury},
+  journal = {arXiv preprint arXiv:2604.05083},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2604.05083}
+}
+```
